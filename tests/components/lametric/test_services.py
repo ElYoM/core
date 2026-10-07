@@ -20,6 +20,7 @@ from homeassistant.components.lametric.const import (
     CONF_ICON_TYPE,
     CONF_MESSAGE,
     CONF_PRIORITY,
+    CONF_REPEAT,
     CONF_SOUND,
     DOMAIN,
     SERVICE_CHART,
@@ -212,6 +213,35 @@ async def test_service_message(
         )
 
     assert len(mock_lametric.notify.mock_calls) == 3
+
+
+async def test_service_message_sound_repeat(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    mock_lametric: MagicMock,
+) -> None:
+    """Test the sound repeat count is passed to the device."""
+
+    entry = entity_registry.async_get("button.frenck_s_lametric_next_app")
+    assert entry
+    assert entry.device_id
+
+    await hass.services.async_call(
+        DOMAIN,
+        SERVICE_MESSAGE,
+        {
+            CONF_DEVICE_ID: entry.device_id,
+            CONF_MESSAGE: "Meow!",
+            CONF_SOUND: "cat",
+            CONF_REPEAT: 3,
+        },
+        blocking=True,
+    )
+
+    notification: Notification = mock_lametric.notify.mock_calls[0][2]["notification"]
+    assert notification.model.sound is not None
+    assert notification.model.sound.sound is NotificationSound.CAT
+    assert notification.model.sound.repeat == 3
 
 
 @pytest.mark.parametrize("device_fixture", ["device_sa5_bluetooth_unavailable"])

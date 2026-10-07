@@ -26,7 +26,14 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.util.enum import try_parse_enum
 
-from .const import CONF_CYCLES, CONF_ICON_TYPE, CONF_PRIORITY, CONF_SOUND, DOMAIN
+from .const import (
+    CONF_CYCLES,
+    CONF_ICON_TYPE,
+    CONF_PRIORITY,
+    CONF_REPEAT,
+    CONF_SOUND,
+    DOMAIN,
+)
 from .coordinator import LaMetricConfigEntry, LaMetricDataUpdateCoordinator
 from .entity import LaMetricEntity
 from .helpers import has_audio, lametric_exception_handler
@@ -106,7 +113,11 @@ class LaMetricNotificationService(BaseNotificationService):
                     translation_key="unknown_sound",
                     translation_placeholders={"sound": str(data[CONF_SOUND])},
                 )
-            sound = Sound(sound=snd, category=None)
+            sound = Sound(
+                sound=snd,
+                category=None,
+                repeat=int(data.get(CONF_REPEAT, 1)),
+            )
 
         # Leave the sound out for a device that cannot play it, rather than have
         # it refuse the whole notification.

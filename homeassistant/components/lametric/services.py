@@ -27,6 +27,7 @@ from .const import (
     CONF_ICON_TYPE,
     CONF_MESSAGE,
     CONF_PRIORITY,
+    CONF_REPEAT,
     CONF_SOUND,
     DOMAIN,
     SERVICE_CHART,
@@ -47,6 +48,9 @@ SERVICE_BASE_SCHEMA = probatio.Schema(
         ): probatio.Coerce(NotificationPriority),
         probatio.Optional(CONF_SOUND): probatio.Any(
             probatio.Coerce(AlarmSound), probatio.Coerce(NotificationSound)
+        ),
+        probatio.Optional(CONF_REPEAT, default=1): probatio.All(
+            probatio.Coerce(int), probatio.NonNegative()
         ),
     }
 )
@@ -129,7 +133,11 @@ async def async_send_notification(
                 translation_key="unknown_sound",
                 translation_placeholders={"sound": str(call.data[CONF_SOUND])},
             )
-        sound = Sound(sound=snd, category=None)
+        sound = Sound(
+            sound=snd,
+            category=None,
+            repeat=call.data[CONF_REPEAT],
+        )
 
     # Leave the sound out for a device that cannot play it, rather than have
     # it refuse the whole notification.
